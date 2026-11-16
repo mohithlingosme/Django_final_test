@@ -18,21 +18,11 @@ Use your own local admin credentials; do not put passwords in the submission. Op
 - [x] `07-final.png` captured after a real authenticated exam submission using the stored correct choices; it shows Congratulations, 100%, and evaluated answers.
 - Screenshots are in the project root and were not altered.
 
-## 3. Publish and submit
+## 3. Submit the assignment
 
-This folder is not a Git repository and has no configured remote or branch. To obtain public file URLs, place the reviewed project files in the intended **existing public GitHub repository**. Do not create a repository, change visibility, or add a guessed remote as part of this task.
+The project is published on the `main` branch of `https://github.com/mohithlingosme/Django_final_test`. The five source links are in `answer.md` and `Submission/answer.md`.
 
-Once working in that intended checkout, first verify its status, remote, and branch. Stage only the reviewed project files, inspect the staged diff, then push to the already configured remote and intended branch:
-
-```powershell
-git status --short --branch
-git branch --show-current
-git remote -v
-git add -- .gitignore README.md requirements.txt manage.py config onlinecourse answer.md MANUAL_TODO.md CODEX_COMPLETION_REPORT.md
-git diff --cached --stat
-git diff --cached
-git commit -m "Complete Django online course final project"
-git push -u <configured-remote> <intended-branch>
-```
-
-Replace the final placeholders only with values confirmed by Git. Do not force-push. After publishing, verify all six file URLs in `answer.md` while signed out or in a private browser window and replace the pending entries with those verified links. Upload the answers and both screenshots to the course assignment.
+- [ ] Open each GitHub file URL while signed out or in a private browser window.
+- [ ] Upload `Submission/03-admin-site.png` for Question 3.
+- [ ] Upload `Submission/07-final.png` for Question 7.
+- [ ] Submit the five public URLs and both screenshots in the course assignment.

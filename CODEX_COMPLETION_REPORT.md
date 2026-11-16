@@ -40,9 +40,10 @@ Submission files: `answer.md`, `MANUAL_TODO.md`, and this report.
 - Screenshot sizes: `03-admin-site.png` 27,570 bytes; `07-final.png` 35,834 bytes. No image was drawn or edited.
 - Local demonstration course, lesson, questions, choices, and successful submission remain in the ignored development database. The temporary superuser was deleted, and the temporary student's password was disabled after capturing screenshots. Create your own superuser with `createsuperuser` if you need to use the local admin.
 
-## GitHub links still pending
+## GitHub publishing
 
-- Git status/branch/remote cannot be reported: this folder is not a Git repository. No push was attempted.
-- No owner, repository, branch, or public-accessible URLs can be verified; all six code links in `answer.md` are pending.
-- The six code links must be added after the project is published to the intended public repository and verified while signed out.
-- The final assignment upload and public-link verification remain manual.
+- Published to the user-provided public repository `https://github.com/mohithlingosme/Django_final_test` on branch `main`.
+- The initial project commit was `ab6057e07700dcd9e22927110ee8e168c0c2f21c`; answer sheets were updated after push and verified public.
+- The five code file URLs are recorded in the root `answer.md` and `Submission/answer.md`. Each source-file page returned HTTP 200 to unauthenticated `curl.exe` requests.
+- `main` tracks `origin/main`. The supplied workspace also contains untracked root screenshots and `CODEX_PROMPT.md`; those were intentionally not committed. Submission screenshot copies are committed under `Submission/`.
+- User must still upload `Submission/03-admin-site.png`, `Submission/07-final.png`, and the answers to the course assignment.
