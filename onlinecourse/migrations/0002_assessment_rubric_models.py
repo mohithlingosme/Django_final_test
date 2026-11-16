@@ -163,6 +163,14 @@ class Migration(migrations.Migration):
             old_name="text",
             new_name="question_text",
         ),
+        migrations.AlterField(
+            model_name="question",
+            name="question_text",
+            field=models.TextField(
+                max_length=300,
+                verbose_name="Question Text",
+            ),
+        ),
         migrations.AddField(
             model_name="question",
             name="grade",
