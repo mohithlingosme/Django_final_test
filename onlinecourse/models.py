@@ -170,6 +170,10 @@ class Question(models.Model):
         """Backward-compatible read alias for templates using question.text."""
         return self.question_text
 
+    @text.setter
+    def text(self, value):
+        self.question_text = value
+
     def __str__(self):
         return self.question_text
 
@@ -235,6 +239,19 @@ class Submission(models.Model):
                 name="submission_pass_percentage_at_most_100",
             ),
         ]
+
+    def calculate_grade(self):
+        """Calculate the weighted percentage earned by this submission."""
+        questions = self.enrollment.course.questions.prefetch_related("choices")
+        total_points = sum(question.grade for question in questions)
+        earned_points = sum(
+            question.grade
+            for question in questions
+            if question.is_get_score(
+                self.choices.filter(question=question)
+            )
+        )
+        return round(earned_points * 100 / total_points) if total_points else 0
 
     def __str__(self):
         return f"{self.student} - {self.enrollment.course} ({self.score}%)"
