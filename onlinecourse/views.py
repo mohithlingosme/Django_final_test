@@ -184,13 +184,47 @@ def show_exam_result(request, course_id, submission_id):
         enrollment__course=course,
         student=request.user,
     )
+    selected_ids = submission.choices.all()
+    total_points = 0
+    earned_points = 0
+    correct_answers = 0
+    questions = course.questions.prefetch_related("choices")
+
+    for question in questions:
+        total_points += question.grade
+        selected_for_question = selected_ids.filter(question=question)
+        if question.is_get_score(selected_for_question):
+            earned_points += question.grade
+            correct_answers += 1
+
+    grade = round(earned_points * 100 / total_points) if total_points else 0
+    passed = grade >= submission.pass_percentage
+
+    # Recalculate from the persisted answers so the result page always shows
+    # the grade derived from the submitted choices, not client-supplied data.
+    if submission.score != grade or submission.passed != passed:
+        submission.score = grade
+        submission.correct_answers = correct_answers
+        submission.total_questions = questions.count()
+        submission.passed = passed
+        submission.save(
+            update_fields=[
+                "score",
+                "correct_answers",
+                "total_questions",
+                "passed",
+            ]
+        )
+
     return render(
         request,
         "onlinecourse/exam_result.html",
         {
             "course": course,
             "submission": submission,
-            "selected_ids": submission.choices.all(),
-            "grade": submission.score,
+            "selected_ids": selected_ids,
+            "grade": grade,
+            "correct_answers": correct_answers,
+            "total_questions": questions.count(),
         },
     )
