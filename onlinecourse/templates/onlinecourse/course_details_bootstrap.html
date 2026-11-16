@@ -1,0 +1,36 @@
+{% extends "onlinecourse/base.html" %}
+
+{% block title %}{{ course.title }} | OnlineCourse{% endblock %}
+
+{% block content %}
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'onlinecourse:course_list' %}">Courses</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ course.title }}</li>
+    </ol>
+  </nav>
+
+  <section class="mb-4">
+    <h1>{{ course.title }}</h1>
+    {% if course.description %}<p class="lead">{{ course.description }}</p>{% endif %}
+  </section>
+
+  <section aria-labelledby="lessons-heading">
+    <h2 id="lessons-heading" class="h3">Lessons</h2>
+    {% with lessons=course.lessons.all %}
+      {% if lessons %}
+        <div class="list-group">
+          {% for lesson in lessons %}
+            <article class="list-group-item">
+              <h3 class="h5 mb-1">{{ lesson.title }}</h3>
+              {% if lesson.content %}<p class="mb-2">{{ lesson.content }}</p>{% endif %}
+              <a class="btn btn-outline-primary btn-sm" href="{% url 'onlinecourse:submit' lesson.id %}">Take lesson exam</a>
+            </article>
+          {% endfor %}
+        </div>
+      {% else %}
+        <p class="text-muted">No lessons have been added to this course yet.</p>
+      {% endif %}
+    {% endwith %}
+  </section>
+{% endblock %}

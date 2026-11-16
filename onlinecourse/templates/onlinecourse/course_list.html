@@ -1,0 +1,24 @@
+{% extends "onlinecourse/base.html" %}
+
+{% block title %}Courses | OnlineCourse{% endblock %}
+
+{% block content %}
+  <h1 class="mb-4">Online courses</h1>
+  {% if courses %}
+    <div class="row g-3">
+      {% for course in courses %}
+        <div class="col-md-6 col-lg-4">
+          <div class="card h-100">
+            <div class="card-body">
+              <h2 class="h5 card-title">{{ course.title }}</h2>
+              <p class="card-text">{{ course.description|default:"Explore the lessons in this course." }}</p>
+              <a class="btn btn-primary" href="{% url 'onlinecourse:course_details' course.id %}">View course</a>
+            </div>
+          </div>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="alert alert-info" role="status">There are no courses available yet.</div>
+  {% endif %}
+{% endblock %}
