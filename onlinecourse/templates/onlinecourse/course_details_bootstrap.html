@@ -3,34 +3,75 @@
 {% block title %}{{ course.title }} | OnlineCourse{% endblock %}
 
 {% block content %}
-  <nav aria-label="breadcrumb">
+<div class="container py-4">
+  <nav aria-label="breadcrumb" class="mb-3">
     <ol class="breadcrumb">
-      <li class="breadcrumb-item"><a href="{% url 'onlinecourse:course_list' %}">Courses</a></li>
-      <li class="breadcrumb-item active" aria-current="page">{{ course.title }}</li>
+      <li class="breadcrumb-item">
+        <a href="{% url 'onlinecourse:course_list' %}">Courses</a>
+      </li>
+      <li class="breadcrumb-item active" aria-current="page">
+        {{ course.title }}
+      </li>
     </ol>
   </nav>
 
-  <section class="mb-4">
-    <h1>{{ course.title }}</h1>
-    {% if course.description %}<p class="lead">{{ course.description }}</p>{% endif %}
+  <section class="card shadow-sm mb-4">
+    <div class="card-body">
+      <h1 class="card-title">{{ course.title }}</h1>
+      {% if course.description %}
+        <p class="card-text lead">{{ course.description }}</p>
+      {% endif %}
+      <p class="text-muted mb-0">
+        Passing score: {{ course.pass_percentage }}%
+      </p>
+    </div>
   </section>
 
-  <section aria-labelledby="lessons-heading">
-    <h2 id="lessons-heading" class="h3">Lessons</h2>
+  <section aria-labelledby="lessons-heading" class="mb-4">
+    <h2 id="lessons-heading" class="h3 mb-3">Course lessons</h2>
+
     {% with lessons=course.lessons.all %}
       {% if lessons %}
         <div class="list-group">
           {% for lesson in lessons %}
             <article class="list-group-item">
-              <h3 class="h5 mb-1">{{ lesson.title }}</h3>
-              {% if lesson.content %}<p class="mb-2">{{ lesson.content }}</p>{% endif %}
-              <a class="btn btn-outline-primary btn-sm" href="{% url 'onlinecourse:submit' lesson.id %}">Take lesson exam</a>
+              <h3 class="h5 mb-1">
+                Lesson {{ forloop.counter }}: {{ lesson.title }}
+              </h3>
+              {% if lesson.content %}
+                <p class="mb-2">{{ lesson.content }}</p>
+              {% endif %}
+              <span class="badge text-bg-secondary">
+                Pass mark: {{ lesson.pass_percentage }}%
+              </span>
             </article>
           {% endfor %}
         </div>
       {% else %}
-        <p class="text-muted">No lessons have been added to this course yet.</p>
+        <div class="alert alert-info" role="status">
+          No lessons have been added to this course yet.
+        </div>
       {% endif %}
     {% endwith %}
   </section>
+
+  <section aria-labelledby="assessment-heading" class="card border-primary">
+    <div class="card-body">
+      <h2 id="assessment-heading" class="h4 card-title">Course assessment</h2>
+      <p class="card-text">
+        Complete the assessment to view your score and question-by-question results.
+      </p>
+      {% if user.is_authenticated %}
+        <a class="btn btn-primary"
+           href="{% url 'onlinecourse:submit' course.id %}">
+          Start assessment
+        </a>
+      {% else %}
+        <a class="btn btn-primary" href="{% url 'login' %}">
+          Sign in to take the assessment
+        </a>
+      {% endif %}
+    </div>
+  </section>
+</div>
 {% endblock %}
