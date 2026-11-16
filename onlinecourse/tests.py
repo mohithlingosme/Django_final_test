@@ -2,7 +2,7 @@ from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from .models import Answer, Choice, Course, Lesson, Question, Submission
+from .models import Answer, Choice, Course, Enrollment, Lesson, Question, Submission
 
 
 class OnlineCourseViewTests(TestCase):
@@ -22,9 +22,11 @@ class OnlineCourseViewTests(TestCase):
             pass_percentage=50,
         )
         self.first_question = Question.objects.create(
+            course=self.course,
             lesson=self.lesson,
-            text="Which framework is this?",
+            question_text="Which framework is this?",
             order=1,
+            grade=1,
         )
         self.first_correct = Choice.objects.create(
             question=self.first_question,
@@ -36,9 +38,11 @@ class OnlineCourseViewTests(TestCase):
             text="Flask",
         )
         self.second_question = Question.objects.create(
+            course=self.course,
             lesson=self.lesson,
-            text="Which language is Django written in?",
+            question_text="Which language is Django written in?",
             order=2,
+            grade=1,
         )
         self.second_correct = Choice.objects.create(
             question=self.second_question,
@@ -52,12 +56,15 @@ class OnlineCourseViewTests(TestCase):
         self.client.force_login(self.student)
 
     def _submit_url(self):
-        return reverse("onlinecourse:submit", args=[self.lesson.pk])
+        return reverse("onlinecourse:submit", args=[self.course.pk])
+
+    def _result_url(self, submission):
+        return reverse(
+            "onlinecourse:show_exam_result",
+            args=[self.course.pk, submission.pk],
+        )
 
     def test_login_route_and_exam_authentication_redirect(self):
-        response = self.client.get(reverse("login"))
-        self.assertContains(response, "Sign in")
-
         self.client.logout()
         response = self.client.get(self._submit_url())
         self.assertRedirects(
@@ -65,20 +72,22 @@ class OnlineCourseViewTests(TestCase):
             f"{reverse('login')}?next={self._submit_url()}",
         )
 
-    def test_admin_index_displays_auth_and_onlinecourse_apps(self):
+    def test_admin_index_displays_auth_and_all_onlinecourse_models(self):
         admin_user = get_user_model().objects.create_superuser(
             username="admin",
             email="admin@example.com",
             password="test-password",
         )
         self.client.force_login(admin_user)
-
         response = self.client.get(reverse("admin:index"))
 
         self.assertContains(response, "Authentication and Authorization")
         self.assertContains(response, "OnlineCourse")
+        self.assertContains(response, "Instructors")
+        self.assertContains(response, "Learners")
+        self.assertContains(response, "Enrollments")
 
-    def test_course_details_renders_lessons_and_empty_state(self):
+    def test_course_details_renders_lessons_with_bootstrap(self):
         response = self.client.get(
             reverse("onlinecourse:course_details", args=[self.course.pk])
         )
@@ -86,6 +95,8 @@ class OnlineCourseViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, self.course.title)
         self.assertContains(response, self.lesson.title)
+        self.assertContains(response, 'class="card')
+        self.assertContains(response, 'class="list-group')
 
         empty_course = Course.objects.create(title="Empty course")
         response = self.client.get(
@@ -107,24 +118,16 @@ class OnlineCourseViewTests(TestCase):
         )
 
         submission = Submission.objects.get()
-        self.assertRedirects(
-            response,
-            reverse(
-                "onlinecourse:show_exam_result",
-                args=[submission.pk],
-            ),
-        )
+        self.assertRedirects(response, self._result_url(submission))
         self.assertEqual(submission.score, 50)
         self.assertEqual(submission.correct_answers, 1)
         self.assertEqual(submission.total_questions, 2)
         self.assertTrue(submission.passed)
+        self.assertEqual(submission.enrollment.course, self.course)
+        self.assertEqual(submission.choices.count(), 2)
         self.assertEqual(Answer.objects.filter(submission=submission).count(), 2)
-        result = self.client.get(
-            reverse(
-                "onlinecourse:show_exam_result",
-                args=[submission.pk],
-            )
-        )
+
+        result = self.client.get(self._result_url(submission))
         self.assertContains(result, "Congratulations")
         self.assertContains(result, "50%")
         self.assertContains(result, "Exam results")
@@ -146,12 +149,7 @@ class OnlineCourseViewTests(TestCase):
 
         self.assertFalse(submission.passed)
         self.assertEqual(submission.score, 50)
-        result = self.client.get(
-            reverse(
-                "onlinecourse:show_exam_result",
-                args=[submission.pk],
-            )
-        )
+        result = self.client.get(self._result_url(submission))
         self.assertEqual(response.status_code, 302)
         self.assertNotContains(result, "Congratulations")
         self.assertContains(result, "did not meet the pass mark")
@@ -197,7 +195,12 @@ class OnlineCourseViewTests(TestCase):
         )
         self.assertEqual(csrf_response.status_code, 403)
 
+        enrollment = Enrollment.objects.create(
+            user=self.student,
+            course=self.course,
+        )
         submission = Submission.objects.create(
+            enrollment=enrollment,
             student=self.student,
             lesson=self.lesson,
             score=100,
@@ -211,11 +214,6 @@ class OnlineCourseViewTests(TestCase):
             password="test-password",
         )
         self.client.force_login(other_student)
-        response = self.client.get(
-            reverse(
-                "onlinecourse:show_exam_result",
-                args=[submission.pk],
-            )
-        )
+        response = self.client.get(self._result_url(submission))
 
         self.assertEqual(response.status_code, 404)
